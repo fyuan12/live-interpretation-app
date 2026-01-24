@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Gospel Interpreter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600&family=Lora:wght@400;600&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="status-indicator" id="status">
+                <span class="status-dot"></span>
+                <span class="status-text">Ready</span>
+            </div>
+            <h1 class="title">Live Interpreter 岛冠中文支会 </h1>
+            <div class="controls">
+                <!-- Language Direction Toggle -->
+                <div class="direction-toggle">
+                    <button id="directionBtn" class="btn btn-direction" title="Switch translation direction">
+                        <span class="direction-label" id="directionLabel">EN → 中文</span>
+                        <svg class="icon icon-swap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"/>
+                        </svg>
+                    </button>
+                </div>
+                <button id="settingsBtn" class="btn btn-icon" title="Font Settings">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+                <button id="startBtn" class="btn btn-primary">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                    </svg>
+                    Start Listening
+                </button>
+                <button id="stopBtn" class="btn btn-secondary" disabled>
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="6" width="12" height="12"/>
+                    </svg>
+                    Stop
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="content">
+            <div class="panel panel-left" id="panelLeft">
+                <div class="panel-header">
+                    <span class="lang-label" id="leftLabel">English</span>
+                </div>
+                <div class="panel-body" id="leftText">
+                    <p class="placeholder" id="leftPlaceholder">Speech will appear here...</p>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="panel panel-right" id="panelRight">
+                <div class="panel-header">
+                    <span class="lang-label" id="rightLabel">中文</span>
+                </div>
+                <div class="panel-body" id="rightText">
+                    <p class="placeholder" id="rightPlaceholder">翻译将显示在这里...</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="glossary-status">
+                <span id="glossaryStatus">Glossary: Not loaded</span>
+            </div>
+            <div class="sentence-count">
+                Showing last <select id="sentenceCount">
+                    <option value="3">3</option>
+                    <option value="5" selected>5</option>
+                    <option value="8">8</option>
+                    <option value="10">10</option>
+                </select> sentences
+            </div>
+        </footer>
+    </div>
+
+    <!-- Font Settings Modal -->
+    <div class="modal" id="fontSettingsModal">
+        <div class="modal-content">
+            <h2>Display Settings</h2>
+            
+            <div class="settings-section">
+                <h3>English Panel</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="englishFont">Font</label>
+                        <select id="englishFont">
+                            <option value="'Source Serif 4', Georgia, serif">Source Serif 4</option>
+                            <option value="'Merriweather', Georgia, serif">Merriweather</option>
+                            <option value="'Lora', Georgia, serif">Lora</option>
+                            <option value="'Open Sans', Arial, sans-serif">Open Sans</option>
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="'Times New Roman', Times, serif">Times New Roman</option>
+                            <option value="Arial, Helvetica, sans-serif">Arial</option>
+                            <option value="system-ui, sans-serif">System Default</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="englishSize">Size: <span id="englishSizeValue">2</span>rem</label>
+                        <input type="range" id="englishSize" min="1" max="4" step="0.25" value="2">
+                    </div>
+                </div>
+                <div class="font-preview" id="englishPreview">
+                    The quick brown fox jumps over the lazy dog.
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <h3>中文面板</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="chineseFont">字体</label>
+                        <select id="chineseFont">
+                            <option value="'Noto Sans SC', 'PingFang SC', sans-serif">Noto Sans SC (思源黑体)</option>
+                            <option value="'Noto Serif SC', 'Songti SC', serif">Noto Serif SC (思源宋体)</option>
+                            <option value="'ZCOOL XiaoWei', serif">ZCOOL XiaoWei (站酷小薇)</option>
+                            <option value="'PingFang SC', sans-serif">PingFang SC (苹方)</option>
+                            <option value="'Microsoft YaHei', sans-serif">Microsoft YaHei (微软雅黑)</option>
+                            <option value="'SimSun', serif">SimSun (宋体)</option>
+                            <option value="'KaiTi', serif">KaiTi (楷体)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="chineseSize">大小: <span id="chineseSizeValue">2.2</span>rem</label>
+                        <input type="range" id="chineseSize" min="1" max="4" step="0.25" value="2.2">
+                    </div>
+                </div>
+                <div class="font-preview" id="chinesePreview">
+                    天父爱我们每一个人。福音带来平安与喜乐。
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button id="resetFonts" class="btn btn-secondary">Reset to Defaults</button>
+                <button id="saveFontSettings" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initial Setup Modal -->
+    <div class="modal active" id="setupModal">
+        <div class="modal-content">
+            <h2>Welcome to Live Interpreter</h2>
+            <p class="setup-description">Enter your DeepL API key to get started. The LDS terminology glossaries will be created automatically for both directions.</p>
+            <div class="form-group">
+                <label for="setupApiKey">DeepL API Key</label>
+                <input type="password" id="setupApiKey" placeholder="Enter your DeepL API key">
+                <small class="help-text">Find your key at <a href="https://www.deepl.com/your-account/keys" target="_blank">deepl.com/your-account/keys</a></small>
+            </div>
+            <div class="modal-actions">
+                <button id="initializeApp" class="btn btn-primary">Initialize</button>
+            </div>
+            <div id="setupStatus" class="setup-status"></div>
+        </div>
+    </div>
+
+    <script src="glossary.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
