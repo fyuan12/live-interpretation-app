@@ -113,6 +113,6 @@ app.post('/api/deepl-glossary', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`\n🎤 Live Interpreter server running at http://localhost:${PORT}\n`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Live Interpreter server running on port ${PORT}`);
 });
