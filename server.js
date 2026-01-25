@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const http = require('http');
+const { WebSocketServer } = require('ws');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -18,6 +21,14 @@ if (!APP_PASSWORD || !JWT_SECRET || !DEEPL_API_KEY || !DEEPGRAM_API_KEY) {
     console.error('Missing required environment variables. Please check your .env file.');
     console.error('Required: APP_PASSWORD, JWT_SECRET, DEEPL_API_KEY, DEEPGRAM_API_KEY');
     process.exit(1);
+}
+
+// In-memory room storage
+const rooms = new Map();
+
+// Generate a short room ID
+function generateRoomId() {
+    return crypto.randomBytes(3).toString('hex'); // 6 character hex string
 }
 
 // Middleware
@@ -44,7 +55,7 @@ function authenticateToken(req, res, next) {
     });
 }
 
-// Login endpoint
+// Login endpoint - now returns roomId
 app.post('/api/auth/login', (req, res) => {
     const { password } = req.body;
 
@@ -56,15 +67,47 @@ app.post('/api/auth/login', (req, res) => {
         return res.status(401).json({ error: 'Invalid password' });
     }
 
-    // Create JWT token (expires in 24 hours)
-    const token = jwt.sign({ authenticated: true }, JWT_SECRET, { expiresIn: '24h' });
+    // Generate room ID for this session
+    const roomId = generateRoomId();
 
-    res.json({ token });
+    // Create JWT token (expires in 24 hours) with roomId
+    const token = jwt.sign({ authenticated: true, roomId }, JWT_SECRET, { expiresIn: '24h' });
+
+    // Initialize room state
+    rooms.set(roomId, {
+        interpreterWs: null,
+        audienceWs: new Set(),
+        state: {
+            isListening: false,
+            direction: 'en-to-zh',
+            sentences: { source: [], target: [] }
+        }
+    });
+
+    console.log(`[Room] Created room ${roomId}`);
+
+    res.json({ token, roomId });
 });
 
 // Protected endpoint to get Deepgram API key
 app.get('/api/config/deepgram', authenticateToken, (req, res) => {
     res.json({ apiKey: DEEPGRAM_API_KEY });
+});
+
+// Get room info (for reconnection)
+app.get('/api/room/:roomId', (req, res) => {
+    const { roomId } = req.params;
+    const room = rooms.get(roomId);
+
+    if (!room) {
+        return res.status(404).json({ error: 'Room not found' });
+    }
+
+    res.json({
+        exists: true,
+        state: room.state,
+        audienceCount: room.audienceWs.size
+    });
 });
 
 // Get DeepL base URL based on API key type
@@ -158,6 +201,140 @@ app.post('/api/deepl-glossary', authenticateToken, async (req, res) => {
     }
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+// Serve audience view
+app.get('/view', (req, res) => {
+    res.sendFile(path.join(__dirname, 'audience.html'));
+});
+
+// Create HTTP server
+const server = http.createServer(app);
+
+// Create WebSocket server
+const wss = new WebSocketServer({ server, path: '/ws' });
+
+wss.on('connection', (ws, req) => {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const roomId = url.searchParams.get('room');
+    const role = url.searchParams.get('role'); // 'interpreter' or 'audience'
+
+    console.log(`[WS] Connection: role=${role}, room=${roomId}`);
+
+    if (!roomId) {
+        ws.close(4000, 'Room ID required');
+        return;
+    }
+
+    const room = rooms.get(roomId);
+    if (!room) {
+        ws.close(4001, 'Room not found');
+        return;
+    }
+
+    if (role === 'interpreter') {
+        // Interpreter connection
+        room.interpreterWs = ws;
+
+        ws.on('message', (data) => {
+            try {
+                const message = JSON.parse(data);
+                handleInterpreterMessage(roomId, message);
+            } catch (e) {
+                console.error('[WS] Invalid message:', e);
+            }
+        });
+
+        ws.on('close', () => {
+            console.log(`[WS] Interpreter disconnected from room ${roomId}`);
+            room.interpreterWs = null;
+            // Notify audience that interpreter disconnected
+            broadcastToAudience(roomId, {
+                type: 'status',
+                isListening: false,
+                interpreterConnected: false
+            });
+        });
+
+    } else {
+        // Audience connection
+        room.audienceWs.add(ws);
+        console.log(`[WS] Audience joined room ${roomId} (${room.audienceWs.size} viewers)`);
+
+        // Send current state to new audience member
+        ws.send(JSON.stringify({
+            type: 'init',
+            state: room.state,
+            interpreterConnected: room.interpreterWs !== null
+        }));
+
+        ws.on('close', () => {
+            room.audienceWs.delete(ws);
+            console.log(`[WS] Audience left room ${roomId} (${room.audienceWs.size} viewers)`);
+        });
+    }
+});
+
+function handleInterpreterMessage(roomId, message) {
+    const room = rooms.get(roomId);
+    if (!room) return;
+
+    switch (message.type) {
+        case 'status':
+            // Update listening status and direction
+            room.state.isListening = message.isListening;
+            if (message.direction) {
+                room.state.direction = message.direction;
+            }
+            broadcastToAudience(roomId, {
+                type: 'status',
+                isListening: room.state.isListening,
+                direction: room.state.direction,
+                interpreterConnected: true
+            });
+            break;
+
+        case 'sentence':
+            // Add new sentence
+            room.state.sentences.source.push(message.source);
+            room.state.sentences.target.push(message.target);
+            broadcastToAudience(roomId, {
+                type: 'sentence',
+                source: message.source,
+                target: message.target
+            });
+            break;
+
+        case 'clear':
+            // Clear sentences
+            room.state.sentences = { source: [], target: [] };
+            broadcastToAudience(roomId, { type: 'clear' });
+            break;
+    }
+}
+
+function broadcastToAudience(roomId, message) {
+    const room = rooms.get(roomId);
+    if (!room) return;
+
+    const data = JSON.stringify(message);
+    for (const client of room.audienceWs) {
+        if (client.readyState === 1) { // WebSocket.OPEN
+            client.send(data);
+        }
+    }
+}
+
+// Clean up old rooms periodically (every hour)
+setInterval(() => {
+    const now = Date.now();
+    for (const [roomId, room] of rooms) {
+        // Remove rooms with no connections for over 2 hours
+        if (!room.interpreterWs && room.audienceWs.size === 0) {
+            rooms.delete(roomId);
+            console.log(`[Room] Cleaned up inactive room ${roomId}`);
+        }
+    }
+}, 60 * 60 * 1000);
+
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Live Interpreter server running on port ${PORT}`);
 });

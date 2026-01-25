@@ -5,6 +5,7 @@ class LiveInterpreter {
     constructor() {
         // Auth state
         this.authToken = sessionStorage.getItem('auth_token') || '';
+        this.roomId = sessionStorage.getItem('room_id') || '';
         this.deepgramKey = '';
 
         // Glossary state
@@ -14,12 +15,14 @@ class LiveInterpreter {
         // Listening state
         this.isListening = false;
         this.sentences = { source: [], target: [] };
-        this.maxSentences = 5;
 
         // Deepgram WebSocket
         this.deepgramSocket = null;
         this.mediaStream = null;
         this.mediaRecorder = null;
+
+        // Broadcast WebSocket (to audience)
+        this.broadcastSocket = null;
 
         // Translation direction: 'en-to-zh' or 'zh-to-en'
         this.direction = localStorage.getItem('translation_direction') || 'en-to-zh';
@@ -48,8 +51,11 @@ class LiveInterpreter {
             rightLabel: document.getElementById('rightLabel'),
             leftPlaceholder: document.getElementById('leftPlaceholder'),
             rightPlaceholder: document.getElementById('rightPlaceholder'),
-            sentenceCount: document.getElementById('sentenceCount'),
             glossaryStatus: document.getElementById('glossaryStatus'),
+            // Room link elements
+            roomLinkContainer: document.getElementById('roomLinkContainer'),
+            roomLinkUrl: document.getElementById('roomLinkUrl'),
+            copyLinkBtn: document.getElementById('copyLinkBtn'),
             // Login elements
             loginModal: document.getElementById('loginModal'),
             loginPassword: document.getElementById('loginPassword'),
@@ -77,7 +83,7 @@ class LiveInterpreter {
         this.updateDirectionUI();
 
         // Check if already authenticated
-        if (this.authToken) {
+        if (this.authToken && this.roomId) {
             this.verifyTokenAndInitialize();
         }
     }
@@ -85,10 +91,6 @@ class LiveInterpreter {
     bindEvents() {
         this.elements.startBtn.addEventListener('click', () => this.startListening());
         this.elements.stopBtn.addEventListener('click', () => this.stopListening());
-        this.elements.sentenceCount.addEventListener('change', (e) => {
-            this.maxSentences = parseInt(e.target.value);
-            this.updateDisplay();
-        });
         this.elements.loginBtn.addEventListener('click', () => this.login());
         this.elements.loginPassword.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.login();
@@ -114,6 +116,10 @@ class LiveInterpreter {
                 this.elements.fontSettingsModal.classList.remove('active');
             }
         });
+
+        // Copy room link
+        this.elements.copyLinkBtn.addEventListener('click', () => this.copyRoomLink());
+        this.elements.roomLinkUrl.addEventListener('click', () => this.copyRoomLink());
     }
 
     async login() {
@@ -140,7 +146,9 @@ class LiveInterpreter {
 
             const data = await response.json();
             this.authToken = data.token;
+            this.roomId = data.roomId;
             sessionStorage.setItem('auth_token', this.authToken);
+            sessionStorage.setItem('room_id', this.roomId);
 
             this.showLoginStatus('Login successful!', 'success');
 
@@ -163,12 +171,25 @@ class LiveInterpreter {
             if (!response.ok) {
                 // Token invalid, show login
                 this.authToken = '';
+                this.roomId = '';
                 sessionStorage.removeItem('auth_token');
+                sessionStorage.removeItem('room_id');
                 return;
             }
 
             const data = await response.json();
             this.deepgramKey = data.apiKey;
+
+            // Verify room still exists
+            const roomResponse = await fetch(`/api/room/${this.roomId}`);
+            if (!roomResponse.ok) {
+                // Room doesn't exist, need fresh login
+                this.authToken = '';
+                this.roomId = '';
+                sessionStorage.removeItem('auth_token');
+                sessionStorage.removeItem('room_id');
+                return;
+            }
 
             // Token valid, hide login modal
             this.elements.loginModal.classList.remove('active');
@@ -179,11 +200,15 @@ class LiveInterpreter {
             }
 
             this.updateGlossaryStatus();
+            this.showRoomLink();
+            this.connectBroadcastSocket();
 
         } catch (error) {
             console.error('Token verification error:', error);
             this.authToken = '';
+            this.roomId = '';
             sessionStorage.removeItem('auth_token');
+            sessionStorage.removeItem('room_id');
         }
     }
 
@@ -214,11 +239,94 @@ class LiveInterpreter {
             setTimeout(() => {
                 this.elements.loginModal.classList.remove('active');
                 this.updateGlossaryStatus();
+                this.showRoomLink();
+                this.connectBroadcastSocket();
             }, 500);
 
         } catch (error) {
             console.error('Initialization error:', error);
             this.showLoginStatus(`Setup failed: ${error.message}`, 'error');
+        }
+    }
+
+    showRoomLink() {
+        if (!this.roomId) return;
+
+        const baseUrl = window.location.origin;
+        const viewUrl = `${baseUrl}/view?room=${this.roomId}`;
+
+        this.elements.roomLinkUrl.textContent = viewUrl;
+        this.elements.roomLinkContainer.style.display = 'flex';
+    }
+
+    copyRoomLink() {
+        const url = this.elements.roomLinkUrl.textContent;
+        navigator.clipboard.writeText(url).then(() => {
+            // Visual feedback
+            const originalText = this.elements.roomLinkUrl.textContent;
+            this.elements.roomLinkUrl.textContent = 'Copied!';
+            setTimeout(() => {
+                this.elements.roomLinkUrl.textContent = originalText;
+            }, 1500);
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+        });
+    }
+
+    connectBroadcastSocket() {
+        if (!this.roomId) return;
+
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws?room=${this.roomId}&role=interpreter`;
+
+        this.broadcastSocket = new WebSocket(wsUrl);
+
+        this.broadcastSocket.onopen = () => {
+            console.log('Broadcast WebSocket connected');
+            // Send initial status
+            this.broadcastStatus();
+        };
+
+        this.broadcastSocket.onclose = () => {
+            console.log('Broadcast WebSocket closed');
+            // Reconnect after a delay
+            setTimeout(() => {
+                if (this.authToken && this.roomId) {
+                    this.connectBroadcastSocket();
+                }
+            }, 3000);
+        };
+
+        this.broadcastSocket.onerror = (error) => {
+            console.error('Broadcast WebSocket error:', error);
+        };
+    }
+
+    broadcastStatus() {
+        if (this.broadcastSocket?.readyState === WebSocket.OPEN) {
+            this.broadcastSocket.send(JSON.stringify({
+                type: 'status',
+                isListening: this.isListening,
+                direction: this.direction
+            }));
+        }
+    }
+
+    broadcastSentence(source, target) {
+        if (this.broadcastSocket?.readyState === WebSocket.OPEN) {
+            this.broadcastSocket.send(JSON.stringify({
+                type: 'sentence',
+                source,
+                target
+            }));
+        }
+    }
+
+    broadcastClear() {
+        if (this.broadcastSocket?.readyState === WebSocket.OPEN) {
+            this.broadcastSocket.send(JSON.stringify({
+                type: 'clear'
+            }));
         }
     }
 
@@ -336,10 +444,12 @@ class LiveInterpreter {
         // Update UI
         this.updateDirectionUI();
         this.updateGlossaryStatus();
+        this.broadcastStatus();
+        this.broadcastClear();
 
         // Reset display
-        this.elements.leftText.innerHTML = `<p class="placeholder">${this.elements.leftPlaceholder.textContent}</p>`;
-        this.elements.rightText.innerHTML = `<p class="placeholder">${this.elements.rightPlaceholder.textContent}</p>`;
+        this.elements.leftText.innerHTML = `<div class="spacer"></div><p class="placeholder">${this.elements.leftPlaceholder.textContent}</p>`;
+        this.elements.rightText.innerHTML = `<div class="spacer"></div><p class="placeholder">${this.elements.rightPlaceholder.textContent}</p>`;
     }
 
     updateDirectionUI() {
@@ -456,6 +566,11 @@ class LiveInterpreter {
         this.updateDirectionUI();
     }
 
+    // Check if scrolled to bottom (with 50px tolerance)
+    isScrolledToBottom(element) {
+        return element.scrollHeight - element.scrollTop - element.clientHeight < 50;
+    }
+
     async startListening() {
         if (!this.authToken) {
             this.elements.loginModal.classList.add('active');
@@ -487,9 +602,12 @@ class LiveInterpreter {
             this.elements.status.classList.add('listening');
             this.elements.status.querySelector('.status-text').textContent = 'Listening...';
 
-            // Clear placeholders
-            this.elements.leftText.innerHTML = '';
-            this.elements.rightText.innerHTML = '';
+            // Clear placeholders and add spacer
+            this.elements.leftText.innerHTML = '<div class="spacer"></div>';
+            this.elements.rightText.innerHTML = '<div class="spacer"></div>';
+
+            // Broadcast status
+            this.broadcastStatus();
 
         } catch (error) {
             console.error('Error starting listening:', error);
@@ -609,6 +727,9 @@ class LiveInterpreter {
         this.elements.directionBtn.disabled = false;
         this.elements.status.classList.remove('listening');
         this.elements.status.querySelector('.status-text').textContent = 'Stopped';
+
+        // Broadcast status
+        this.broadcastStatus();
     }
 
     async processFinalTranscript(text) {
@@ -618,19 +739,18 @@ class LiveInterpreter {
         this.sentences.source.push(text);
 
         // Translate
+        let translation;
         try {
-            const translation = await this.translate(text);
+            translation = await this.translate(text);
             this.sentences.target.push(translation);
         } catch (error) {
             console.error('Translation error:', error);
-            this.sentences.target.push('[Translation error]');
+            translation = '[Translation error]';
+            this.sentences.target.push(translation);
         }
 
-        // Trim to max sentences
-        while (this.sentences.source.length > this.maxSentences) {
-            this.sentences.source.shift();
-            this.sentences.target.shift();
-        }
+        // Broadcast to audience
+        this.broadcastSentence(text, translation);
 
         this.updateDisplay();
     }
@@ -669,19 +789,29 @@ class LiveInterpreter {
     }
 
     updateDisplay() {
-        // Update left panel (source)
-        this.elements.leftText.innerHTML = this.sentences.source
-            .map(s => `<p class="sentence">${this.escapeHtml(s)}</p>`)
-            .join('');
+        // Check if we should auto-scroll before updating content
+        const shouldScrollLeft = this.isScrolledToBottom(this.elements.leftText);
+        const shouldScrollRight = this.isScrolledToBottom(this.elements.rightText);
+
+        // Update left panel (source) - include spacer for push-to-bottom effect
+        this.elements.leftText.innerHTML = '<div class="spacer"></div>' +
+            this.sentences.source
+                .map(s => `<p class="sentence">${this.escapeHtml(s)}</p>`)
+                .join('');
 
         // Update right panel (target)
-        this.elements.rightText.innerHTML = this.sentences.target
-            .map(s => `<p class="sentence">${this.escapeHtml(s)}</p>`)
-            .join('');
+        this.elements.rightText.innerHTML = '<div class="spacer"></div>' +
+            this.sentences.target
+                .map(s => `<p class="sentence">${this.escapeHtml(s)}</p>`)
+                .join('');
 
-        // Scroll to bottom
-        this.elements.leftText.scrollTop = this.elements.leftText.scrollHeight;
-        this.elements.rightText.scrollTop = this.elements.rightText.scrollHeight;
+        // Smart auto-scroll: only scroll if user was already at bottom
+        if (shouldScrollLeft) {
+            this.elements.leftText.scrollTop = this.elements.leftText.scrollHeight;
+        }
+        if (shouldScrollRight) {
+            this.elements.rightText.scrollTop = this.elements.rightText.scrollHeight;
+        }
     }
 
     escapeHtml(text) {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Gospel Interpreter</title>
+    <title>Live Gospel Interpreter 福音实时翻译</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Merriweather:wght@400;700&family=Open+Sans:wght@400;600&family=Lora:wght@400;600&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
@@ -17,7 +17,7 @@
                 <span class="status-dot"></span>
                 <span class="status-text">Ready</span>
             </div>
-            <h1 class="title">Live Interpreter 岛冠中文支会 </h1>
+            <h1 class="title">Island Crest Ward Live Interpreter 岛冠支会实时翻译 </h1>
             <div class="controls">
                 <!-- Language Direction Toggle -->
                 <div class="direction-toggle">
@@ -78,13 +78,15 @@
             <div class="glossary-status">
                 <span id="glossaryStatus">Glossary: Not loaded</span>
             </div>
-            <div class="sentence-count">
-                Showing last <select id="sentenceCount">
-                    <option value="3">3</option>
-                    <option value="5" selected>5</option>
-                    <option value="8">8</option>
-                    <option value="10">10</option>
-                </select> sentences
+            <div class="room-link" id="roomLinkContainer" style="display: none;">
+                <span>Share:</span>
+                <span class="room-link-url" id="roomLinkUrl" title="Click to copy"></span>
+                <button id="copyLinkBtn" class="btn btn-icon copy-btn" title="Copy link">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </button>
             </div>
         </footer>
     </div>
