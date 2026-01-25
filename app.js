@@ -335,95 +335,117 @@ class LiveInterpreter {
         this.elements.loginStatus.className = `setup-status ${type}`;
     }
 
+    async deleteGlossary(glossaryId, name) {
+        if (!glossaryId) return;
+        console.log(`Deleting existing glossary: ${name} (${glossaryId})`);
+        try {
+            const response = await fetch(`/api/deepl/v2/glossaries/${glossaryId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${this.authToken}` }
+            });
+
+            if (!response.ok) {
+                console.error(`Failed to delete glossary ${glossaryId}. Status: ${response.status}`);
+            } else {
+                console.log(`Successfully deleted glossary ${name}.`);
+            }
+        } catch (error) {
+            console.error(`Error deleting glossary ${glossaryId}:`, error);
+        }
+    }
+
     async createGlossaries() {
+        // Clear local storage to ensure we get fresh IDs
+        localStorage.removeItem('deepl_glossary_en_zh');
+        localStorage.removeItem('deepl_glossary_zh_en');
+        this.glossaryEnToZh = '';
+        this.glossaryZhToEn = '';
+
         // Get existing glossaries
         const listResponse = await fetch('/api/deepl/v2/glossaries', {
             headers: { 'Authorization': `Bearer ${this.authToken}` }
         });
 
-        let existingGlossaries = [];
         if (listResponse.ok) {
             const data = await listResponse.json();
-            existingGlossaries = data.glossaries || [];
-        }
+            const existingGlossaries = data.glossaries || [];
 
-        // Create EN→ZH glossary if needed
-        const existingEnZh = existingGlossaries.find(g => g.name === 'LDS Gospel Terms EN-ZH');
-        if (existingEnZh) {
-            this.glossaryEnToZh = existingEnZh.glossary_id;
-            console.log('Using existing EN→ZH glossary:', this.glossaryEnToZh);
-        } else {
-            const entriesEnZh = LDS_GLOSSARY.map(([en, zh]) => `${en}\t${zh}`).join('\n');
-
-            const responseEnZh = await fetch('/api/deepl-glossary', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.authToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: 'LDS Gospel Terms EN-ZH',
-                    source_lang: 'en',
-                    target_lang: 'zh',
-                    entries: entriesEnZh,
-                    entries_format: 'tsv'
-                })
-            });
-
-            if (!responseEnZh.ok) {
-                const errorText = await responseEnZh.text();
-                throw new Error(`EN→ZH glossary error: ${responseEnZh.status} - ${errorText}`);
+            // Delete existing glossaries to ensure they are always up-to-date
+            const existingEnZh = existingGlossaries.find(g => g.name === 'LDS Gospel Terms EN-ZH');
+            if (existingEnZh) {
+                await this.deleteGlossary(existingEnZh.glossary_id, existingEnZh.name);
             }
 
-            const dataEnZh = await responseEnZh.json();
-            this.glossaryEnToZh = dataEnZh.glossary_id;
-            console.log('Created EN→ZH glossary:', this.glossaryEnToZh);
+            const existingZhEn = existingGlossaries.find(g => g.name === 'LDS Gospel Terms ZH-EN');
+            if (existingZhEn) {
+                await this.deleteGlossary(existingZhEn.glossary_id, existingZhEn.name);
+            }
+        } else {
+            console.error('Could not fetch existing glossaries. Proceeding with creation anyway.');
         }
+
+        // Create EN→ZH glossary
+        console.log('Creating EN→ZH glossary...');
+        const entriesEnZh = LDS_GLOSSARY.map(([en, zh]) => `${en}\t${zh}`).join('\n');
+        const responseEnZh = await fetch('/api/deepl-glossary', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${this.authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: 'LDS Gospel Terms EN-ZH',
+                source_lang: 'en',
+                target_lang: 'zh',
+                entries: entriesEnZh,
+                entries_format: 'tsv'
+            })
+        });
+
+        if (!responseEnZh.ok) {
+            const errorText = await responseEnZh.text();
+            throw new Error(`EN→ZH glossary creation error: ${responseEnZh.status} - ${errorText}`);
+        }
+
+        const dataEnZh = await responseEnZh.json();
+        this.glossaryEnToZh = dataEnZh.glossary_id;
+        console.log('Created EN→ZH glossary:', this.glossaryEnToZh);
         localStorage.setItem('deepl_glossary_en_zh', this.glossaryEnToZh);
 
-        // Create ZH→EN glossary if needed (reverse the entries)
-        const existingZhEn = existingGlossaries.find(g => g.name === 'LDS Gospel Terms ZH-EN');
-        if (existingZhEn) {
-            this.glossaryZhToEn = existingZhEn.glossary_id;
-            console.log('Using existing ZH→EN glossary:', this.glossaryZhToEn);
-        } else {
-            // Reverse the glossary entries: [zh, en] instead of [en, zh]
-            // Dedupe by Chinese term (keep first occurrence only)
-            const seenZh = new Set();
-            const dedupedEntries = LDS_GLOSSARY.filter(([en, zh]) => {
-                if (seenZh.has(zh)) {
-                    return false;
-                }
-                seenZh.add(zh);
-                return true;
-            });
-            const entriesZhEn = dedupedEntries.map(([en, zh]) => `${zh}\t${en}`).join('\n');
-            console.log(`ZH→EN glossary: ${dedupedEntries.length} entries (deduped from ${LDS_GLOSSARY.length})`);
+        // Create ZH→EN glossary
+        console.log('Creating ZH→EN glossary...');
+        const seenZh = new Set();
+        const dedupedEntries = LDS_GLOSSARY.filter(([en, zh]) => {
+            if (seenZh.has(zh)) return false;
+            seenZh.add(zh);
+            return true;
+        });
+        const entriesZhEn = dedupedEntries.map(([en, zh]) => `${zh}\t${en}`).join('\n');
+        console.log(`ZH→EN glossary: ${dedupedEntries.length} entries (deduped from ${LDS_GLOSSARY.length})`);
 
-            const responseZhEn = await fetch('/api/deepl-glossary', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.authToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: 'LDS Gospel Terms ZH-EN',
-                    source_lang: 'zh',
-                    target_lang: 'en',
-                    entries: entriesZhEn,
-                    entries_format: 'tsv'
-                })
-            });
+        const responseZhEn = await fetch('/api/deepl-glossary', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${this.authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: 'LDS Gospel Terms ZH-EN',
+                source_lang: 'zh',
+                target_lang: 'en',
+                entries: entriesZhEn,
+                entries_format: 'tsv'
+            })
+        });
 
-            if (!responseZhEn.ok) {
-                const errorText = await responseZhEn.text();
-                throw new Error(`ZH→EN glossary error: ${responseZhEn.status} - ${errorText}`);
-            }
-
-            const dataZhEn = await responseZhEn.json();
-            this.glossaryZhToEn = dataZhEn.glossary_id;
-            console.log('Created ZH→EN glossary:', this.glossaryZhToEn);
+        if (!responseZhEn.ok) {
+            const errorText = await responseZhEn.text();
+            throw new Error(`ZH→EN glossary creation error: ${responseZhEn.status} - ${errorText}`);
         }
+
+        const dataZhEn = await responseZhEn.json();
+        this.glossaryZhToEn = dataZhEn.glossary_id;
+        console.log('Created ZH→EN glossary:', this.glossaryZhToEn);
         localStorage.setItem('deepl_glossary_zh_en', this.glossaryZhToEn);
     }
 
