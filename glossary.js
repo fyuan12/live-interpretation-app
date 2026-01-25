@@ -1,180 +1,750 @@
 // LDS Terminology Glossary - English to Simplified Chinese
+// Comprehensive glossary with 500+ terms for The Church of Jesus Christ of Latter-day Saints
 // This glossary ensures consistent translation of gospel terms
 
 const LDS_GLOSSARY = [
-    // Core Gospel Terms
-    ["Heavenly Father", "天父"],
-    ["Jesus Christ", "耶稣基督"],
-    ["Holy Ghost", "圣灵"],
-    ["Holy Spirit", "圣灵"],
+    // ============================================
+    // CHURCH NAME AND BASIC TERMS
+    // ============================================
+    ["The Church of Jesus Christ of Latter-day Saints", "耶稣基督后期圣徒教会"],
+    ["Latter-day Saint", "后期圣徒"],
+    ["LDS", "后期圣徒"],
+    ["member", "成员"],
+    ["Church member", "教会成员"],
+    ["non-member", "非成员"],
+
+    // ============================================
+    // GODHEAD
+    // ============================================
     ["Godhead", "神组"],
-    ["Atonement", "赎罪"],
+    ["God", "神"],
+    ["Heavenly Father", "天父"],
+    ["God the Father", "父神"],
+    ["Eternal Father", "永恒的父"],
+    ["Jesus Christ", "耶稣基督"],
     ["Savior", "救主"],
     ["Redeemer", "救赎主"],
-    ["gospel", "福音"],
-    ["salvation", "救恩"],
-    ["exaltation", "超升"],
-    ["eternal life", "永生"],
-    ["immortality", "不死"],
-    
-    // Priesthood
+    ["Lord", "主"],
+    ["Son of God", "神的儿子"],
+    ["Lamb of God", "神的羔羊"],
+    ["Messiah", "弥赛亚"],
+    ["Holy Ghost", "圣灵"],
+    ["Holy Spirit", "圣灵"],
+    ["Comforter", "保惠师"],
+    ["Spirit of the Lord", "主的灵"],
+
+    // ============================================
+    // PRIESTHOOD
+    // ============================================
     ["priesthood", "圣职"],
     ["Melchizedek Priesthood", "麦基洗德圣职"],
     ["Aaronic Priesthood", "亚伦圣职"],
     ["priesthood holder", "圣职持有人"],
     ["priesthood keys", "圣职权钥"],
+    ["priesthood authority", "圣职权柄"],
+    ["priesthood power", "圣职能力"],
     ["priesthood blessing", "圣职祝福"],
     ["ordain", "按立"],
     ["ordination", "按立"],
-    
-    // Church Leadership
-    ["prophet", "先知"],
+    ["confer", "授予"],
+    ["laying on of hands", "按手"],
+
+    // Priesthood Offices
+    ["deacon", "执事"],
+    ["teacher", "教师"],
+    ["priest", "祭司"],
+    ["elder", "长老"],
+    ["high priest", "大祭司"],
+    ["seventy", "七十员"],
+    ["patriarch", "教长"],
     ["apostle", "使徒"],
-    ["Quorum of the Twelve", "十二使徒定额组"],
+    ["prophet", "先知"],
+    ["seer", "先见"],
+    ["revelator", "启示者"],
+
+    // ============================================
+    // CHURCH LEADERSHIP - GENERAL
+    // ============================================
     ["First Presidency", "总会会长团"],
+    ["President of the Church", "教会会长"],
+    ["counselor", "咨理"],
+    ["First Counselor", "第一咨理"],
+    ["Second Counselor", "第二咨理"],
+    ["Quorum of the Twelve Apostles", "十二使徒定额组"],
+    ["Quorum of the Twelve", "十二使徒定额组"],
     ["General Authority", "总会持有权柄人员"],
+    ["General Authority Seventy", "总会七十员"],
+    ["Area Seventy", "区域七十员"],
+    ["Presiding Bishopric", "总主教团"],
+    ["Presiding Bishop", "总主教"],
+
+    // CHURCH LEADERSHIP - STAKE
+    ["stake", "支联会"],
     ["stake president", "支联会会长"],
+    ["stake presidency", "支联会会长团"],
+    ["high council", "大祭司议会"],
+    ["high councilor", "大祭司议会议员"],
+    ["stake patriarch", "支联会教长"],
+    ["stake clerk", "支联会文书"],
+    ["stake executive secretary", "支联会执行秘书"],
+
+    // CHURCH LEADERSHIP - WARD/BRANCH
+    ["ward", "支会"],
+    ["branch", "分会"],
     ["bishop", "主教"],
     ["bishopric", "主教团"],
     ["branch president", "分会会长"],
-    ["patriarch", "教长"],
-    ["patriarchal blessing", "教长祝福"],
-    ["high priest", "大祭司"],
-    ["elder", "长老"],
-    ["seventy", "七十员"],
-    
-    // Organizations
+    ["branch presidency", "分会会长团"],
+    ["ward clerk", "支会文书"],
+    ["ward executive secretary", "支会执行秘书"],
+    ["ward council", "支会议会"],
+
+    // CHURCH LEADERSHIP - MISSION
+    ["mission", "传道部"],
+    ["mission president", "传道部会长"],
+    ["district", "分联会"],
+    ["district president", "分联会会长"],
+    ["zone", "地带"],
+    ["zone leader", "地带领袖"],
+    ["area", "区域"],
+
+    // ============================================
+    // CHURCH ORGANIZATIONS
+    // ============================================
     ["Relief Society", "慈助会"],
     ["Young Women", "女青年"],
     ["Young Men", "男青年"],
     ["Primary", "初级会"],
     ["Sunday School", "主日学"],
     ["elders quorum", "长老定额组"],
-    ["ward", "支会"],
-    ["stake", "支联会"],
-    ["branch", "分会"],
-    ["district", "分联会"],
-    ["mission", "传道部"],
-    
-    // Ordinances
-    ["ordinance", "教仪"],
-    ["baptism", "洗礼"],
-    ["baptize", "施洗"],
-    ["confirmation", "证实"],
-    ["sacrament", "圣餐"],
-    ["endowment", "恩道门"],
-    ["sealing", "印证"],
-    ["temple sealing", "圣殿印证"],
-    ["laying on of hands", "按手"],
-    
-    // Temple
-    ["temple", "圣殿"],
-    ["temple recommend", "圣殿推荐书"],
-    ["temple worthy", "配称进入圣殿"],
-    ["temple ordinances", "圣殿教仪"],
-    ["baptism for the dead", "为死者洗礼"],
-    ["proxy", "代理人"],
-    ["celestial room", "高荣室"],
-    
-    // Scripture Terms
-    ["scriptures", "经文"],
-    ["Bible", "圣经"],
-    ["Book of Mormon", "摩尔门经"],
-    ["Doctrine and Covenants", "教义和圣约"],
-    ["Pearl of Great Price", "无价珍珠"],
-    ["standard works", "标准经典"],
-    ["General Conference", "总会大会"],
-    ["revelation", "启示"],
-    ["testimony", "见证"],
-    ["bear testimony", "作见证"],
-    
-    // Plan of Salvation
-    ["plan of salvation", "救恩计划"],
-    ["plan of happiness", "幸福计划"],
-    ["premortal life", "前生"],
-    ["pre-earth life", "前生"],
-    ["mortal life", "今生"],
-    ["spirit world", "灵的世界"],
-    ["resurrection", "复活"],
-    ["judgment", "审判"],
-    ["celestial kingdom", "高荣国度"],
-    ["terrestrial kingdom", "中荣国度"],
-    ["telestial kingdom", "低荣国度"],
-    ["outer darkness", "外层黑暗"],
-    ["degrees of glory", "荣耀的国度"],
-    
-    // Principles and Doctrines
-    ["faith", "信心"],
-    ["repentance", "悔改"],
-    ["baptism by immersion", "浸没洗礼"],
-    ["gift of the Holy Ghost", "圣灵的恩赐"],
-    ["endure to the end", "坚持到底"],
-    ["agency", "选择权"],
-    ["free agency", "自由选择权"],
-    ["covenant", "圣约"],
-    ["commandment", "诫命"],
-    ["tithing", "什一奉献"],
-    ["fast offering", "禁食捐献"],
-    ["Word of Wisdom", "智慧语"],
-    ["law of chastity", "贞洁律法"],
-    ["Sabbath", "安息日"],
-    ["Sabbath day", "安息日"],
-    
-    // Dispensations and Restoration
-    ["dispensation", "福音期"],
-    ["gospel dispensation", "福音期"],
-    ["Restoration", "复兴"],
-    ["restored gospel", "复兴的福音"],
-    ["latter days", "后期时代"],
-    ["latter-day", "后期"],
-    ["Latter-day Saint", "后期圣徒"],
-    ["First Vision", "第一次异象"],
-    ["Joseph Smith", "约瑟·斯密"],
-    ["golden plates", "金页片"],
-    ["Moroni", "摩罗乃"],
-    
-    // Missionary Work
-    ["missionary", "传教士"],
-    ["missionary work", "传道事工"],
-    ["full-time missionary", "全部时间传教士"],
-    ["mission call", "传道召唤"],
-    ["mission president", "传道部会长"],
-    ["investigator", "慕道友"],
-    ["convert", "归信者"],
-    ["baptismal date", "洗礼日期"],
-    
-    // Family and Relationships
-    ["eternal family", "永恒家庭"],
-    ["eternal marriage", "永恒婚姻"],
-    ["celestial marriage", "高荣婚姻"],
-    ["family home evening", "家人家庭晚会"],
-    ["family history", "家谱"],
-    ["genealogy", "家谱"],
-    
-    // Common Phrases
-    ["in the name of Jesus Christ", "奉耶稣基督的名"],
-    ["amen", "阿们"],
-    ["I know the Church is true", "我知道教会是真实的"],
-    ["I bear my testimony", "我作我的见证"],
-    ["by the power of the Holy Ghost", "借着圣灵的力量"],
-    
-    // Additional Terms
+    ["elders quorum president", "长老定额组会长"],
+    ["deacons quorum", "执事定额组"],
+    ["teachers quorum", "教师定额组"],
+    ["priests quorum", "祭司定额组"],
+    ["quorum", "定额组"],
+    ["president", "会长"],
+    ["presidency", "会长团"],
+
+    // ============================================
+    // CALLINGS AND SERVICE
+    // ============================================
     ["calling", "召唤"],
     ["sustain", "支持"],
     ["release", "卸免"],
     ["set apart", "按手选派"],
-    ["ward council", "支会议会"],
-    ["home teaching", "家庭教导"],
+    ["service", "服务"],
     ["ministering", "施助"],
+    ["home teaching", "家庭教导"],
     ["visiting teaching", "探访教导"],
+    ["ministering brother", "施助弟兄"],
+    ["ministering sister", "施助姐妹"],
+    ["volunteer", "义工"],
+
+    // ============================================
+    // ORDINANCES
+    // ============================================
+    ["ordinance", "教仪"],
+    ["saving ordinance", "救恩的教仪"],
+    ["baptism", "洗礼"],
+    ["baptize", "施洗"],
+    ["baptism by immersion", "浸没洗礼"],
+    ["confirmation", "证实"],
+    ["confirm", "证实"],
+    ["gift of the Holy Ghost", "圣灵的恩赐"],
+    ["receive the Holy Ghost", "接受圣灵"],
+    ["sacrament", "圣餐"],
+    ["blessing the sacrament", "祝福圣餐"],
+    ["passing the sacrament", "传递圣餐"],
+    ["bread", "面包"],
+    ["water", "水"],
+    ["sacrament prayer", "圣餐祈祷文"],
+    ["patriarchal blessing", "教长祝福"],
+    ["father's blessing", "父亲的祝福"],
+    ["baby blessing", "婴儿命名与祝福"],
+    ["naming and blessing", "命名与祝福"],
+
+    // ============================================
+    // TEMPLE
+    // ============================================
+    ["temple", "圣殿"],
+    ["house of the Lord", "主的殿"],
+    ["temple recommend", "圣殿推荐书"],
+    ["temple recommend interview", "圣殿推荐书面谈"],
+    ["temple worthy", "配称进入圣殿"],
+    ["temple ordinances", "圣殿教仪"],
+    ["temple work", "圣殿事工"],
+    ["temple worship", "圣殿崇拜"],
+    ["endowment", "恩道门"],
+    ["initiatory", "洗涤和膏抹"],
+    ["washing", "洗涤"],
+    ["anointing", "膏抹"],
+    ["sealing", "印证"],
+    ["temple sealing", "圣殿印证"],
+    ["sealing room", "印证室"],
+    ["celestial room", "高荣室"],
+    ["baptistry", "洗礼池"],
+    ["baptism for the dead", "为死者洗礼"],
+    ["proxy", "代理人"],
+    ["proxy baptism", "代洗礼"],
+    ["vicarious ordinance", "代替教仪"],
+    ["garment", "圣殿服装"],
+    ["temple garment", "圣殿服装"],
+    ["temple clothing", "圣殿服饰"],
+
+    // ============================================
+    // SCRIPTURES - STANDARD WORKS
+    // ============================================
+    ["scriptures", "经文"],
+    ["standard works", "标准经典"],
+    ["Bible", "圣经"],
+    ["Old Testament", "旧约"],
+    ["New Testament", "新约"],
+    ["Book of Mormon", "摩尔门经"],
+    ["Doctrine and Covenants", "教义和圣约"],
+    ["Pearl of Great Price", "无价珍珠"],
+    ["Book of Moses", "摩西书"],
+    ["Book of Abraham", "亚伯拉罕书"],
+    ["Joseph Smith—Matthew", "约瑟·斯密—马太"],
+    ["Joseph Smith—History", "约瑟·斯密—历史"],
+    ["Articles of Faith", "信条"],
+
+    // Books of the Book of Mormon
+    ["1 Nephi", "尼腓一书"],
+    ["2 Nephi", "尼腓二书"],
+    ["Jacob", "雅各书"],
+    ["Enos", "以挪士书"],
+    ["Jarom", "杰伦书"],
+    ["Omni", "奥姆乃书"],
+    ["Words of Mormon", "摩尔门语"],
+    ["Mosiah", "摩赛亚书"],
+    ["Alma", "阿尔玛书"],
+    ["Helaman", "希拉曼书"],
+    ["3 Nephi", "尼腓三书"],
+    ["4 Nephi", "尼腓四书"],
+    ["Mormon", "摩尔门书"],
+    ["Ether", "以帖书"],
+    ["Moroni", "摩罗乃书"],
+
+    // Scripture Terms
+    ["chapter", "章"],
+    ["verse", "节"],
+    ["revelation", "启示"],
+    ["prophecy", "预言"],
+    ["prophesy", "预言"],
+    ["parable", "比喻"],
+    ["epistle", "书信"],
+    ["vision", "异象"],
+    ["doctrine", "教义"],
+    ["gospel", "福音"],
+
+    // ============================================
+    // SCRIPTURE NAMES - BOOK OF MORMON PROPHETS
+    // ============================================
+    ["Lehi", "李海"],
+    ["Nephi", "尼腓"],
+    ["Enos", "以挪士"],
+    ["King Benjamin", "便雅悯王"],
+    ["Alma the Elder", "老阿尔玛"],
+    ["Alma the Younger", "小阿尔玛"],
+    ["Captain Moroni", "摩罗乃队长"],
+    ["Abinadi", "阿宾纳代"],
+    ["Samuel the Lamanite", "拉曼人撒母耳"],
+    ["Brother of Jared", "雅列的哥哥"],
+    ["Lamanite", "拉曼人"],
+    ["Nephite", "尼腓人"],
+    ["Jaredite", "雅列人"],
+
+    // SCRIPTURE NAMES - BIBLICAL
+    ["Adam", "亚当"],
+    ["Eve", "夏娃"],
+    ["Noah", "挪亚"],
+    ["Abraham", "亚伯拉罕"],
+    ["Isaac", "以撒"],
+    ["Israel", "以色列"],
+    ["Joseph", "约瑟"],
+    ["Moses", "摩西"],
+    ["Aaron", "亚伦"],
+    ["Joshua", "约书亚"],
+    ["Samuel", "撒母耳"],
+    ["David", "大卫"],
+    ["Solomon", "所罗门"],
+    ["Elijah", "以利亚"],
+    ["Elisha", "以利沙"],
+    ["Isaiah", "以赛亚"],
+    ["Jeremiah", "耶利米"],
+    ["Ezekiel", "以西结"],
+    ["Daniel", "但以理"],
+    ["Malachi", "玛拉基"],
+    ["John the Baptist", "施洗约翰"],
+    ["Peter", "彼得"],
+    ["James", "雅各"],
+    ["John", "约翰"],
+    ["Paul", "保罗"],
+    ["Matthew", "马太"],
+    ["Mark", "马可"],
+    ["Luke", "路加"],
+
+    // SCRIPTURE NAMES - RESTORATION FIGURES
+    ["Joseph Smith", "约瑟·斯密"],
+    ["Joseph Smith Jr.", "小约瑟·斯密"],
+    ["Emma Smith", "爱玛·斯密"],
+    ["Hyrum Smith", "海仑·斯密"],
+    ["Brigham Young", "百翰·杨"],
+    ["Oliver Cowdery", "奥利佛·考得里"],
+    ["David Bednar", "大卫·贝纳"],
+    ["Parley P. Pratt", "乒雷乒·乒尔特"],
+
+    // ============================================
+    // PLAN OF SALVATION
+    // ============================================
+    ["plan of salvation", "救恩计划"],
+    ["plan of happiness", "幸福计划"],
+    ["plan of redemption", "救赎计划"],
+    ["great plan of mercy", "伟大的慈悲计划"],
+
+    // Pre-mortal Life
+    ["premortal life", "前生"],
+    ["pre-earth life", "前生"],
+    ["premortal existence", "前生存在"],
+    ["spirit world", "灵的世界"],
+    ["spirit child", "灵体儿女"],
+    ["war in heaven", "天上的战争"],
+    ["Council in Heaven", "天上的议会"],
+
+    // The Fall
+    ["the Fall", "堕落"],
+    ["Fall of Adam", "亚当的坠落"],
+    ["Garden of Eden", "伊甸园"],
+    ["forbidden fruit", "禁果"],
+    ["transgression", "违诫"],
+    ["mortal", "必死的"],
+    ["mortality", "尘世生命"],
+    ["mortal life", "今生"],
+    ["natural man", "自然人"],
+
+    // Atonement
+    ["Atonement", "赎罪"],
+    ["Atonement of Jesus Christ", "耶稣基督的赎罪"],
+    ["redemption", "救赎"],
+    ["redeem", "救赎"],
+    ["ransom", "赎价"],
+    ["sacrifice", "牺牲"],
+    ["infinite Atonement", "无限的赎罪"],
+    ["Gethsemane", "客西马尼园"],
+    ["crucifixion", "钉十字架"],
+    ["cross", "十字架"],
+
+    // Death and Resurrection
+    ["death", "死亡"],
+    ["physical death", "肉体的死亡"],
+    ["spiritual death", "属灵的死亡"],
+    ["resurrection", "复活"],
+    ["resurrected body", "复活的身体"],
+    ["immortality", "不死"],
+    ["immortal", "不死的"],
+    ["spirit prison", "灵监"],
+    ["paradise", "乐园"],
+
+    // Judgment and Glory
+    ["judgment", "审判"],
+    ["Final Judgment", "最后的审判"],
+    ["judgment bar", "审判栏"],
+    ["degrees of glory", "荣耀的国度"],
+    ["celestial kingdom", "高荣国度"],
+    ["celestial glory", "高荣荣耀"],
+    ["terrestrial kingdom", "中荣国度"],
+    ["terrestrial glory", "中荣荣耀"],
+    ["telestial kingdom", "低荣国度"],
+    ["telestial glory", "低荣荣耀"],
+    ["outer darkness", "外层黑暗"],
+    ["sons of perdition", "沉沦之子"],
+    ["salvation", "救恩"],
+    ["exaltation", "超升"],
+    ["eternal life", "永生"],
+
+    // ============================================
+    // GOSPEL PRINCIPLES - FAITH AND REPENTANCE
+    // ============================================
+    ["faith", "信心"],
+    ["faith in Jesus Christ", "对耶稣基督的信心"],
+    ["belief", "相信"],
+    ["believe", "相信"],
+    ["trust", "信任"],
+    ["hope", "希望"],
+    ["repentance", "悔改"],
+    ["repent", "悔改"],
+    ["confession", "认罪"],
+    ["confess", "认罪"],
+    ["forsake", "弃绝"],
+    ["forgiveness", "宽恕"],
+    ["forgive", "宽恕"],
+
+    // GOSPEL PRINCIPLES - OBEDIENCE AND RIGHTEOUSNESS
+    ["obedience", "服从"],
+    ["obey", "服从"],
+    ["obedient", "顺从的"],
+    ["righteousness", "正义"],
+    ["righteous", "正义的"],
+    ["virtue", "美德"],
+    ["virtuous", "有美德的"],
+    ["purity", "纯洁"],
+    ["pure", "纯洁的"],
+    ["holiness", "神圣"],
+    ["holy", "神圣的"],
+    ["sanctification", "成圣"],
+    ["sanctify", "使成圣"],
+
+    // GOSPEL PRINCIPLES - SIN AND GRACE
+    ["sin", "罪"],
+    ["sinner", "罪人"],
+    ["iniquity", "罪恶"],
+    ["wickedness", "邪恶"],
+    ["temptation", "诱惑"],
+    ["tempt", "诱惑"],
+    ["grace", "恩典"],
+    ["mercy", "慈悲"],
+    ["merciful", "慈悲的"],
+    ["justice", "公道"],
+    ["just", "公正的"],
+
+    // GOSPEL PRINCIPLES - OTHER
+    ["agency", "选择权"],
+    ["free agency", "自由选择权"],
+    ["moral agency", "道德选择权"],
+    ["accountability", "责任"],
+    ["age of accountability", "负责年龄"],
+    ["endure to the end", "坚持到底"],
+    ["perseverance", "坚忍"],
+    ["charity", "仁爱"],
+    ["love", "爱"],
+    ["humility", "谦卑"],
+    ["humble", "谦卑的"],
+    ["meekness", "温顺"],
+    ["meek", "温顺的"],
+    ["patience", "耐心"],
+    ["patient", "有耐心的"],
+
+    // ============================================
+    // COVENANTS AND COMMANDMENTS
+    // ============================================
+    ["covenant", "圣约"],
+    ["baptismal covenant", "洗礼圣约"],
+    ["temple covenant", "圣殿圣约"],
+    ["new and everlasting covenant", "新而永约"],
+    ["keep covenants", "遵守圣约"],
+    ["renew covenants", "更新圣约"],
+    ["covenant path", "圣约的道路"],
+    ["commandment", "诫命"],
+    ["Ten Commandments", "十诫"],
+    ["law", "律法"],
+    ["law of Moses", "摩西律法"],
+
+    // Specific Commandments
+    ["tithing", "什一奉献"],
+    ["tithe", "什一奉献"],
+    ["full tithe payer", "缴纳足额什一奉献者"],
+    ["fast offering", "禁食捐献"],
+    ["fasting", "禁食"],
+    ["fast", "禁食"],
+    ["fast Sunday", "禁食主日"],
+    ["Word of Wisdom", "智慧语"],
+    ["law of chastity", "贞洁律法"],
+    ["chastity", "贞洁"],
+    ["Sabbath", "安息日"],
+    ["Sabbath day", "安息日"],
+    ["keep the Sabbath", "遵守安息日"],
+    ["consecration", "奉献"],
+    ["law of consecration", "奉献律法"],
+
+    // ============================================
+    // RESTORATION
+    // ============================================
+    ["Restoration", "复兴"],
+    ["restored gospel", "复兴的福音"],
+    ["restored Church", "复兴的教会"],
+    ["dispensation", "福音期"],
+    ["gospel dispensation", "福音期"],
+    ["dispensation of the fulness of times", "时代圆满的福音期"],
+    ["latter days", "后期时代"],
+    ["latter-day", "后期"],
+    ["last days", "末世"],
+    ["First Vision", "第一次异象"],
+    ["apostasy", "叛教"],
+    ["Great Apostasy", "大叛教"],
+    ["golden plates", "金页片"],
+    ["translation", "翻译"],
+    ["Urim and Thummim", "乌陵和土明"],
+    ["seer stone", "先见石"],
+
+    // ============================================
+    // MISSIONARY WORK
+    // ============================================
+    ["missionary", "传教士"],
+    ["missionary work", "传道事工"],
+    ["full-time missionary", "全部时间传教士"],
+    ["service missionary", "服务传教士"],
+    ["senior missionary", "年长传教士"],
+    ["mission call", "传道召唤"],
+    ["mission field", "传道地区"],
+    ["companion", "同伴"],
+    ["companionship", "同伴关系"],
+    ["proselyte", "归信者"],
+    ["investigator", "慕道友"],
+    ["convert", "归信者"],
+    ["conversion", "归信"],
+    ["baptismal date", "洗礼日期"],
+    ["teach", "教导"],
+    ["teaching", "教导"],
+    ["Preach My Gospel", "宣讲我的福音"],
+
+    // ============================================
+    // FAMILY
+    // ============================================
+    ["family", "家庭"],
+    ["eternal family", "永恒家庭"],
+    ["family unit", "家庭单位"],
+    ["eternal marriage", "永恒婚姻"],
+    ["celestial marriage", "高荣婚姻"],
+    ["temple marriage", "圣殿婚姻"],
+    ["sealed", "印证"],
+    ["family home evening", "家人家庭晚会"],
+    ["family prayer", "家庭祈祷"],
+    ["family scripture study", "家庭经文研读"],
+    ["family history", "家谱"],
+    ["genealogy", "家谱"],
+    ["FamilySearch", "家谱搜索"],
+    ["ancestor", "祖先"],
+    ["descendant", "后代"],
+    ["The Family: A Proclamation to the World", "家庭：致全世界文告"],
+
+    // ============================================
+    // MEETINGS AND WORSHIP
+    // ============================================
+    ["meeting", "聚会"],
+    ["sacrament meeting", "圣餐聚会"],
+    ["Sunday meeting", "主日聚会"],
+    ["fast and testimony meeting", "禁食见证聚会"],
+    ["General Conference", "总会大会"],
+    ["stake conference", "支联会大会"],
+    ["ward conference", "支会大会"],
+    ["fireside", "炉边聚会"],
+    ["devotional", "灵修会"],
+    ["prayer", "祈祷"],
+    ["pray", "祈祷"],
+    ["opening prayer", "开会祈祷"],
+    ["closing prayer", "闭会祈祷"],
+    ["invocation", "开会祈祷"],
+    ["benediction", "闭会祈祷"],
+    ["hymn", "圣诗"],
+    ["sing", "唱歌"],
+    ["choir", "诗歌班"],
+    ["talk", "演讲"],
+    ["speak", "演讲"],
+    ["speaker", "演讲者"],
+    ["worship", "崇拜"],
+    ["chapel", "礼拜堂"],
+    ["meetinghouse", "教堂"],
+    ["pulpit", "讲台"],
+
+    // ============================================
+    // TESTIMONY AND CONVERSION
+    // ============================================
+    ["testimony", "见证"],
+    ["bear testimony", "作见证"],
+    ["share testimony", "分享见证"],
+    ["I know", "我知道"],
+    ["I know the Church is true", "我知道教会是真实的"],
+    ["I bear my testimony", "我作我的见证"],
+    ["in the name of Jesus Christ, amen", "奉耶稣基督的名，阿们"],
+    ["amen", "阿们"],
+    ["active member", "活跃成员"],
+    ["less active", "不活跃"],
+    ["inactive", "不活跃"],
+    ["reactivation", "再活跃"],
+
+    // ============================================
+    // SPIRITUAL GIFTS
+    // ============================================
+    ["spiritual gift", "属灵恩赐"],
+    ["gift of tongues", "说方言的恩赐"],
+    ["gift of interpretation", "翻方言的恩赐"],
+    ["gift of prophecy", "预言的恩赐"],
+    ["gift of healing", "医治的恩赐"],
+    ["gift of discernment", "辨别的恩赐"],
+    ["gift of knowledge", "知识的恩赐"],
+    ["gift of wisdom", "智慧的恩赐"],
+    ["gift of faith", "信心的恩赐"],
+    ["personal revelation", "个人启示"],
+    ["inspiration", "灵感"],
+    ["inspire", "启发"],
+    ["prompted", "提示"],
+    ["prompting", "提示"],
+    ["discernment", "辨别"],
+
+    // ============================================
+    // SATAN AND OPPOSITION
+    // ============================================
+    ["Satan", "撒但"],
+    ["Lucifer", "路西弗"],
+    ["devil", "魔鬼"],
+    ["adversary", "敌人"],
+    ["evil", "邪恶"],
+    ["darkness", "黑暗"],
+    ["opposition", "反对"],
+    ["opposition in all things", "凡事皆有对立"],
+    ["pride", "骄傲"],
+    ["contention", "纷争"],
+
+    // ============================================
+    // ZION AND GATHERING
+    // ============================================
+    ["Zion", "锡安"],
+    ["build up Zion", "建立锡安"],
+    ["gathering of Israel", "以色列的聚集"],
+    ["gathering", "聚集"],
+    ["scattered Israel", "分散的以色列"],
+    ["house of Israel", "以色列家族"],
+    ["tribe", "支派"],
+    ["lineage", "世系"],
+    ["promised land", "应许地"],
+
+    // ============================================
+    // SECOND COMING
+    // ============================================
+    ["Second Coming", "第二次来临"],
+    ["Second Coming of Jesus Christ", "耶稣基督的第二次来临"],
+    ["Millennium", "千禧年"],
+    ["millennial", "千禧年的"],
+    ["signs of the times", "时代的征兆"],
+    ["prepared", "准备好的"],
+    ["watchful", "警醒的"],
+    ["endure", "忍耐"],
+    ["tribulation", "患难"],
+
+    // ============================================
+    // WORTHINESS
+    // ============================================
     ["worthiness", "配称"],
     ["worthy", "配称"],
+    ["unworthy", "不配称"],
+    ["worthiness interview", "配称面谈"],
+    ["recommend", "推荐书"],
+    ["recommend interview", "推荐书面谈"],
+
+    // ============================================
+    // BLESSINGS
+    // ============================================
     ["blessing", "祝福"],
-    ["prayer", "祈祷"],
-    ["fasting", "禁食"],
-    ["consecration", "奉献"],
-    ["Zion", "锡安"],
-    ["worship", "崇拜"],
+    ["blessing of comfort", "安慰的祝福"],
+    ["blessing of healing", "医治的祝福"],
+    ["administering to the sick", "给病人祝福"],
+    ["anoint with oil", "用油膏抹"],
+    ["consecrated oil", "献祭过的油"],
+    ["seal the anointing", "印证膏抹"],
+
+    // ============================================
+    // COMMON PHRASES
+    // ============================================
+    ["in the name of Jesus Christ", "奉耶稣基督的名"],
+    ["by the power of the Holy Ghost", "借着圣灵的力量"],
+    ["in the name of the Father, Son, and Holy Ghost", "奉父、子、圣灵的名"],
+    ["we thank thee", "我们感谢你"],
+    ["we ask thee", "我们求你"],
+    ["bless and sanctify", "祝福和圣化"],
+    ["the Church is true", "教会是真实的"],
+    ["the Book of Mormon is true", "摩尔门经是真实的"],
+    ["Joseph Smith was a prophet", "约瑟·斯密是一位先知"],
+    ["I say these things", "我这样说"],
+    ["even so, amen", "阿们"],
+    ["dear Heavenly Father", "亲爱的天父"],
+    ["brothers and sisters", "弟兄姐妹们"],
+    ["my dear brothers and sisters", "我亲爱的弟兄姐妹们"],
+    ["may we", "愿我们"],
+    ["let us", "让我们"],
+
+    // ============================================
+    // EDUCATION AND PROGRAMS
+    // ============================================
+    ["seminary", "福音进修班"],
+    ["institute", "福音研究所"],
+    ["BYU", "杨百翰大学"],
+    ["Church Educational System", "教会教育系统"],
+    ["Come, Follow Me", "来跟从我"],
+    ["Gospel Library", "福音图书馆"],
+    ["Liahona", "利阿贺拿"],
+    ["Ensign", "旌旗"],
+    ["For the Strength of Youth", "巩固青年"],
+
+    // ============================================
+    // WELFARE AND SERVICE
+    // ============================================
+    ["welfare", "福利"],
+    ["welfare program", "福利计划"],
+    ["bishop's storehouse", "主教仓库"],
+    ["humanitarian aid", "人道救援"],
+    ["humanitarian services", "人道服务"],
+    ["self-reliance", "自立"],
+    ["Deseret Industries", "蜂巢工业"],
+    ["service project", "服务计划"],
+    ["community service", "社区服务"],
+
+    // ============================================
+    // HISTORICAL TERMS
+    // ============================================
+    ["Sacred Grove", "圣林"],
+    ["Hill Cumorah", "克乌拉山"],
+    ["Kirtland", "嘉德兰"],
+    ["Nauvoo", "纳府"],
+    ["Salt Lake City", "盐湖城"],
+    ["pioneer", "先驱"],
+    ["pioneers", "先驱者"],
+    ["handcart", "手推车"],
+    ["pioneer trek", "先驱之旅"],
+    ["Martin Handcart Company", "马丁手推车队"],
+    ["Willie Handcart Company", "威利手推车队"],
+
+    // ============================================
+    // PLACES IN SCRIPTURE
+    // ============================================
+    ["Jerusalem", "耶路撒冷"],
+    ["Bethlehem", "伯利恒"],
+    ["Nazareth", "拿撒勒"],
+    ["Galilee", "加利利"],
+    ["Golgotha", "各各他"],
+    ["Mount of Olives", "橄榄山"],
+    ["Sea of Galilee", "加利利海"],
+    ["Jordan River", "约旦河"],
+    ["Promised Land", "应许地"],
+    ["Zarahemla", "柴雷罕拉"],
+    ["Bountiful", "丰盛地"],
+    ["Land of Nephi", "尼腓地"],
+
+    // ============================================
+    // ADDITIONAL TERMS
+    // ============================================
+    ["spirit", "灵"],
+    ["soul", "灵魂"],
+    ["body", "身体"],
+    ["heart", "心"],
+    ["mind", "心智"],
+    ["will", "意愿"],
+    ["truth", "真理"],
+    ["light", "光"],
+    ["light of Christ", "基督的光"],
+    ["knowledge", "知识"],
+    ["wisdom", "智慧"],
+    ["understanding", "了解"],
+    ["power", "能力"],
+    ["authority", "权柄"],
+    ["glory", "荣耀"],
+    ["honor", "荣耀"],
+    ["kingdom", "国度"],
+    ["heaven", "天堂"],
+    ["hell", "地狱"],
+    ["angel", "天使"],
+    ["miracle", "奇迹"],
+    ["sign", "征兆"],
+    ["wonder", "奇事"],
 ];
 
 // Export for use in app.js
