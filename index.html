@@ -152,20 +152,19 @@
         </div>
     </div>
 
-    <!-- Initial Setup Modal -->
-    <div class="modal active" id="setupModal">
+    <!-- Login Modal -->
+    <div class="modal active" id="loginModal">
         <div class="modal-content">
             <h2>Welcome to Live Interpreter</h2>
-            <p class="setup-description">Enter your DeepL API key to get started. The LDS terminology glossaries will be created automatically for both directions.</p>
+            <p class="setup-description">Enter the password to access the interpreter.</p>
             <div class="form-group">
-                <label for="setupApiKey">DeepL API Key</label>
-                <input type="password" id="setupApiKey" placeholder="Enter your DeepL API key">
-                <small class="help-text">Find your key at <a href="https://www.deepl.com/your-account/keys" target="_blank">deepl.com/your-account/keys</a></small>
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter password">
             </div>
             <div class="modal-actions">
-                <button id="initializeApp" class="btn btn-primary">Initialize</button>
+                <button id="loginBtn" class="btn btn-primary">Login</button>
             </div>
-            <div id="setupStatus" class="setup-status"></div>
+            <div id="loginStatus" class="setup-status"></div>
         </div>
     </div>
 
