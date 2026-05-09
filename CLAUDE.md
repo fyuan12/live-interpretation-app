@@ -1,113 +1,83 @@
-# Live Gospel Interpreter - Project Context for Claude
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-A real-time English ↔ Chinese interpretation tool for LDS (Church of Jesus Christ of Latter-day Saints) church meetings. Uses Web Speech API for speech recognition and DeepL for translation with a custom glossary of 150+ LDS terminology terms.
 
-## Tech Stack
-- **Frontend**: Vanilla HTML/CSS/JavaScript (no framework)
-- **Backend**: Node.js + Express (simple proxy server for DeepL API)
-- **APIs**: 
-  - Web Speech API (Chrome only) for speech-to-text
-  - DeepL API Pro for translation with glossary support
-- **Styling**: Custom dark theme optimized for projection
-
-## Project Structure
-```
-live-interpretation-app/
-├── index.html      # Main UI with modals for setup and font settings
-├── styles.css      # Dark theme, responsive panels, CSS variables
-├── app.js          # LiveInterpreter class - main application logic
-├── glossary.js     # 150+ LDS terms with EN↔ZH translations
-├── server.js       # Express proxy for DeepL API (handles CORS)
-├── package.json    # Dependencies: express, cors
-└── README.md       # User documentation
-```
-
-## Key Features (Completed)
-- ✅ Real-time speech-to-text via Chrome Web Speech API
-- ✅ DeepL translation with custom LDS glossary
-- ✅ Bidirectional: EN→ZH and ZH→EN translation
-- ✅ Side-by-side display optimized for projection
-- ✅ Adjustable sentence history (3-10 sentences)
-- ✅ Font customization (English and Chinese fonts/sizes)
-- ✅ Dark theme with professional styling
-- ✅ Auto-glossary creation for both directions
-- ✅ API key stored in localStorage
-
-## How It Works
-1. User enters DeepL API key on first run
-2. App creates two DeepL glossaries (EN→ZH and ZH→EN) automatically
-3. User clicks "Start Listening" - microphone captures speech
-4. Web Speech API transcribes speech to text
-5. Text sent to DeepL via Express proxy server
-6. Translation displayed alongside original in real-time
-7. Sentences scroll with configurable history limit
+A real-time English ↔ Chinese interpretation tool for LDS church meetings. An interpreter speaks into a microphone; their words are transcribed, translated, and broadcast live to congregation members on a read-only audience view.
 
 ## Running the App
+
 ```bash
-cd /Users/franklinyuan/Documents/Claude-Projects/live-interpretation-app
-npm install          # Install express and cors
-npm start            # Starts server at http://localhost:8000
-```
-Then open Chrome and navigate to `http://localhost:8000`
-
-## Remaining Tasks
-
-### 1. Deploy the App
-Options to consider:
-- **Railway/Render/Fly.io**: Free tier, easy Node.js deployment
-- **Vercel**: Good for static + serverless, may need to convert proxy to API routes
-- **Heroku**: Classic option, but no longer free
-- **Self-hosted**: User's own server
-
-Deployment considerations:
-- Environment variable for DeepL API key (don't hardcode)
-- HTTPS required for Web Speech API in production
-- Consider API key input vs. server-side key management
-
-### 2. Create GitHub Repository
-```bash
-cd /Users/franklinyuan/Documents/Claude-Projects/live-interpretation-app
-git init
-git add .
-git commit -m "Initial commit: Live Gospel Interpreter"
-# Then create repo on GitHub and push
+npm install
+npm start          # starts server at http://localhost:8000
 ```
 
-Files to add to `.gitignore`:
-```
-node_modules/
-.DS_Store
-.env
-```
+Requires a `.env` file (see `.env.example`) with four variables: `APP_PASSWORD`, `JWT_SECRET`, `DEEPL_API_KEY`, `DEEPGRAM_API_KEY`.
 
-## Design Decisions Made
-1. **No React/Vue**: Vanilla JS for simplicity and fast loading
-2. **Express proxy**: Avoids CORS issues with DeepL API
-3. **Dual glossaries**: Separate EN→ZH and ZH→EN for bidirectional translation
-4. **Dark theme**: Better for projection in church settings
-5. **Google Fonts**: Noto Sans SC, Source Serif 4 for readability
-6. **localStorage**: Simple persistence for API key and preferences
+There are no tests and no linter configured.
 
-## LDS Glossary Notes
-- 150+ terms covering: priesthood, ordinances, temple, scriptures, organizations
-- Stored in `glossary.js` as array of [English, Chinese] pairs
-- DeepL glossary API ensures consistent translation of religious terms
-- ZH→EN glossary is deduplicated (some Chinese terms map to multiple English)
+## Architecture
 
-## API Costs
-- DeepL Pro API: $5.75/month base + ~$0.75-1.25 per 30-40 min session
-- Estimated monthly: $10-12 for weekly church use
+The app has two distinct user roles served from one Express server:
 
-## Browser Requirements
-- **Chrome required**: Web Speech API not available in Firefox/Safari
-- Microphone permission needed
-- Internet connection required for DeepL API
+- **Interpreter view** (`/` → `index.html` + `app.js`): password-protected, controls speech capture and translation
+- **Audience view** (`/view` → `audience.html` + `audience.js`): public, read-only, receives updates via WebSocket
 
-## Potential Future Enhancements
-- [ ] Offline mode with local translation model
-- [ ] Recording/export of sessions
-- [ ] Multiple language pairs (Spanish, Portuguese, etc.)
-- [ ] Confidence indicators for translations
-- [ ] Custom glossary editor UI
-- [ ] Mobile-responsive layout for tablets
+### Request / data flow
+
+1. Interpreter logs in via `POST /api/auth/login` → server creates an in-memory **room** and returns a JWT + a 6-character `roomId`
+2. Interpreter connects to Deepgram's cloud STT service directly from the browser over `wss://api.deepgram.com` using a key fetched from `GET /api/config/deepgram` (the key never ships in HTML)
+3. Deepgram returns final transcripts; the browser calls `POST /api/deepl/v2/translate` (proxied to DeepL with the server-side API key)
+4. Translated sentences are pushed over a second WebSocket (`/ws?room=<id>&role=interpreter`) to the Express server
+5. Express relays each sentence to all connected audience WebSocket clients (`/ws?room=<id>&role=audience`)
+
+### Server (`server.js`)
+
+- Runs an HTTP server + a `ws` WebSocket server on the same port
+- Room state (`interpreterWs`, `audienceWs` Set, `state`) is stored in a `Map` in memory — **rooms are lost on server restart**
+- JWT middleware (`authenticateToken`) guards all `/api/*` routes except `/api/room/:roomId`
+- DeepL is proxied at `/api/deepl/*` (URL-encoded bodies, auto-selects free vs. pro endpoint based on whether the key contains `:fx`)
+- Glossary creation gets its own endpoint `/api/deepl-glossary` because it needs special `URLSearchParams` handling
+- Rooms are cleaned up hourly when both interpreter and all audience clients have disconnected
+
+### Client — Interpreter (`app.js`)
+
+Single class `LiveInterpreter`. Key state:
+- `authToken` / `roomId` — stored in `sessionStorage` (cleared on tab close)
+- `deepgramKey` — fetched after login, held only in memory
+- `glossaryEnToZh` / `glossaryZhToEn` — DeepL glossary IDs stored in `localStorage` (persist across sessions)
+- `direction` — `'en-to-zh'` or `'zh-to-en'`, persisted in `localStorage`
+- `broadcastSocket` — WebSocket to `/ws` as role `interpreter`; auto-reconnects every 3 s
+
+On login: fetches Deepgram key, creates/recreates DeepL glossaries (always deletes and re-creates to stay current), then opens the broadcast WebSocket.
+
+On "Start Listening": requests microphone, opens a WebSocket to `wss://api.deepgram.com`, starts a `MediaRecorder` that chunks audio every 250 ms and sends chunks to Deepgram. Final transcripts trigger translation then a `sentence` message to the server WebSocket.
+
+Font settings are CSS-variable–based, stored in `localStorage`, swapped depending on direction (left/right panels swap language assignment when direction changes).
+
+### Client — Audience (`audience.js`)
+
+Single class `AudienceView`. Connects to `/ws?room=<id>&role=audience` with exponential-backoff reconnection (max 10 attempts, up to 30 s delay). On connect the server immediately sends an `init` message with the full current state. Subsequent `sentence`, `status`, and `clear` messages keep the view in sync. Font settings are audience-local and stored in `localStorage`.
+
+### WebSocket message protocol
+
+| Sender | Type | Payload |
+|--------|------|---------|
+| interpreter → server | `status` | `{ isListening, direction }` |
+| interpreter → server | `sentence` | `{ source, target }` |
+| interpreter → server | `clear` | — |
+| server → audience | `init` | `{ state, interpreterConnected }` |
+| server → audience | `status` | `{ isListening, direction, interpreterConnected }` |
+| server → audience | `sentence` | `{ source, target }` |
+| server → audience | `clear` | — |
+
+### Glossary (`glossary.js`)
+
+Exports `LDS_GLOSSARY` — an array of `[english, chinese]` pairs. The EN→ZH glossary uses all entries; the ZH→EN glossary deduplicates on the Chinese side (some Chinese terms map to multiple English terms, which DeepL disallows).
+
+## Deployment
+
+Docker is supported (`Dockerfile` uses `node:20-alpine`). Web Speech API is replaced by Deepgram, so **any modern browser works** — Chrome is no longer required. HTTPS is still recommended in production (needed for microphone access via `getUserMedia` on non-localhost origins).
+
+Environment variables must be set at runtime; they are never baked into client-side code.
