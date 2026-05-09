@@ -13,7 +13,7 @@ npm install
 npm start          # starts server at http://localhost:8000
 ```
 
-Requires a `.env` file (see `.env.example`) with four variables: `APP_PASSWORD`, `JWT_SECRET`, `DEEPL_API_KEY`, `DEEPGRAM_API_KEY`.
+Requires a `.env` file (see `.env.example`) with four variables: `APP_PASSWORD`, `JWT_SECRET`, `GOOGLE_TRANSLATE_API_KEY`, `DEEPGRAM_API_KEY`.
 
 There are no tests and no linter configured.
 
@@ -28,17 +28,18 @@ The app has two distinct user roles served from one Express server:
 
 1. Interpreter logs in via `POST /api/auth/login` → server creates an in-memory **room** and returns a JWT + a 6-character `roomId`
 2. Interpreter connects to Deepgram's cloud STT service directly from the browser over `wss://api.deepgram.com` using a key fetched from `GET /api/config/deepgram` (the key never ships in HTML)
-3. Deepgram returns final transcripts; the browser calls `POST /api/deepl/v2/translate` (proxied to DeepL with the server-side API key)
-4. Translated sentences are pushed over a second WebSocket (`/ws?room=<id>&role=interpreter`) to the Express server
-5. Express relays each sentence to all connected audience WebSocket clients (`/ws?room=<id>&role=audience`)
+3. Deepgram returns final transcripts; the browser calls `POST /api/translate` on the Express server
+4. The server injects LDS glossary terms as `[Tn]` placeholders, calls Google Cloud Translation v2, then restores the placeholders with canonical LDS translations before returning the result
+5. Translated sentences are pushed over a second WebSocket (`/ws?room=<id>&role=interpreter`) to the Express server
+6. Express relays each sentence to all connected audience WebSocket clients (`/ws?room=<id>&role=audience`)
 
 ### Server (`server.js`)
 
 - Runs an HTTP server + a `ws` WebSocket server on the same port
 - Room state (`interpreterWs`, `audienceWs` Set, `state`) is stored in a `Map` in memory — **rooms are lost on server restart**
 - JWT middleware (`authenticateToken`) guards all `/api/*` routes except `/api/room/:roomId`
-- DeepL is proxied at `/api/deepl/*` (URL-encoded bodies, auto-selects free vs. pro endpoint based on whether the key contains `:fx`)
-- Glossary creation gets its own endpoint `/api/deepl-glossary` because it needs special `URLSearchParams` handling
+- `POST /api/translate` is the translation endpoint: applies server-side LDS glossary term injection, calls Google Cloud Translation v2, then restores placeholders
+- Legacy DeepL proxy routes (`/api/deepl/*`, `/api/deepl-glossary`) remain in the code but are no longer called by the client
 - Rooms are cleaned up hourly when both interpreter and all audience clients have disconnected
 
 ### Client — Interpreter (`app.js`)
@@ -46,11 +47,10 @@ The app has two distinct user roles served from one Express server:
 Single class `LiveInterpreter`. Key state:
 - `authToken` / `roomId` — stored in `sessionStorage` (cleared on tab close)
 - `deepgramKey` — fetched after login, held only in memory
-- `glossaryEnToZh` / `glossaryZhToEn` — DeepL glossary IDs stored in `localStorage` (persist across sessions)
 - `direction` — `'en-to-zh'` or `'zh-to-en'`, persisted in `localStorage`
 - `broadcastSocket` — WebSocket to `/ws` as role `interpreter`; auto-reconnects every 3 s
 
-On login: fetches Deepgram key, creates/recreates DeepL glossaries (always deletes and re-creates to stay current), then opens the broadcast WebSocket.
+On login: fetches Deepgram key, then immediately opens the broadcast WebSocket (no glossary setup step — glossary is handled server-side).
 
 On "Start Listening": requests microphone, opens a WebSocket to `wss://api.deepgram.com`, starts a `MediaRecorder` that chunks audio every 250 ms and sends chunks to Deepgram. Final transcripts trigger translation then a `sentence` message to the server WebSocket.
 
@@ -74,7 +74,9 @@ Single class `AudienceView`. Connects to `/ws?room=<id>&role=audience` with expo
 
 ### Glossary (`glossary.js`)
 
-Exports `LDS_GLOSSARY` — an array of `[english, chinese]` pairs. The EN→ZH glossary uses all entries; the ZH→EN glossary deduplicates on the Chinese side (some Chinese terms map to multiple English terms, which DeepL disallows).
+Exports `LDS_GLOSSARY` — an array of 748 `[english, chinese]` pairs, covering priesthood, ordinances, organizations, scriptures, and LDS-specific vocabulary. The file is loaded both in the browser (via `<script>` tag, sets a global) and on the server (via `require()`).
+
+**Term injection** (server-side, `server.js`): Before each translation request the server scans the source text for glossary terms, replaces matches with `[T0]`, `[T1]`, … placeholders, sends the modified text to Google Translate, then substitutes the placeholders back with the canonical LDS translations from the glossary. Terms are sorted longest-first to prefer specific matches (e.g. "Melchizedek Priesthood" before "priesthood"). ZH→EN deduplicates on the Chinese side.
 
 ## Deployment
 
