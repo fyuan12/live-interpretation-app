@@ -13,14 +13,71 @@ const PORT = process.env.PORT || 8000;
 // Environment variables
 const APP_PASSWORD = process.env.APP_PASSWORD;
 const JWT_SECRET = process.env.JWT_SECRET;
-const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
+const DEEPL_API_KEY = process.env.DEEPL_API_KEY; // optional, kept for legacy proxy routes
 const DEEPGRAM_API_KEY = process.env.DEEPGRAM_API_KEY;
+const GOOGLE_TRANSLATE_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY;
 
 // Validate required environment variables
-if (!APP_PASSWORD || !JWT_SECRET || !DEEPL_API_KEY || !DEEPGRAM_API_KEY) {
+if (!APP_PASSWORD || !JWT_SECRET || !DEEPGRAM_API_KEY || !GOOGLE_TRANSLATE_API_KEY) {
     console.error('Missing required environment variables. Please check your .env file.');
-    console.error('Required: APP_PASSWORD, JWT_SECRET, DEEPL_API_KEY, DEEPGRAM_API_KEY');
+    console.error('Required: APP_PASSWORD, JWT_SECRET, DEEPGRAM_API_KEY, GOOGLE_TRANSLATE_API_KEY');
     process.exit(1);
+}
+
+// Load LDS glossary and build sorted lookup tables (longest terms first to avoid partial matches)
+const LDS_GLOSSARY = require('./glossary.js');
+
+const enToZhEntries = [...LDS_GLOSSARY].sort((a, b) => b[0].length - a[0].length);
+
+const seenZh = new Set();
+const zhToEnEntries = LDS_GLOSSARY
+    .filter(([, zh]) => { if (seenZh.has(zh)) return false; seenZh.add(zh); return true; })
+    .map(([en, zh]) => [zh, en])
+    .sort((a, b) => b[0].length - a[0].length);
+
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Replace LDS terms with [Tn] placeholders before sending to translation API
+function injectGlossaryTerms(text, sourceLang) {
+    const placeholders = [];
+    let processed = text;
+
+    if (sourceLang === 'en') {
+        for (const [en, zh] of enToZhEntries) {
+            const regex = new RegExp(`(?<![\\w])${escapeRegex(en)}(?![\\w])`, 'gi');
+            if (regex.test(processed)) {
+                const idx = placeholders.length;
+                placeholders.push(zh);
+                processed = processed.replace(regex, `[T${idx}]`);
+            }
+        }
+    } else {
+        for (const [zh, en] of zhToEnEntries) {
+            if (processed.includes(zh)) {
+                const idx = placeholders.length;
+                placeholders.push(en);
+                processed = processed.replaceAll(zh, `[T${idx}]`);
+            }
+        }
+    }
+
+    return { processed, placeholders };
+}
+
+// Restore placeholders after translation, handling spacing variants Google may produce
+function restoreGlossaryTerms(text, placeholders) {
+    let result = text;
+    for (let i = 0; i < placeholders.length; i++) {
+        result = result
+            .replaceAll(`[T${i}]`, placeholders[i])
+            .replaceAll(`[ T${i} ]`, placeholders[i])
+            .replaceAll(`[T${i} ]`, placeholders[i])
+            .replaceAll(`[ T${i}]`, placeholders[i])
+            .replaceAll(`[t${i}]`, placeholders[i]);
+    }
+    return result;
 }
 
 // In-memory room storage
@@ -198,6 +255,54 @@ app.post('/api/deepl-glossary', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Glossary creation error:', error);
         res.status(500).json({ error: 'Glossary creation failed', details: error.message });
+    }
+});
+
+// Google Translate endpoint with LDS glossary term injection
+app.post('/api/translate', authenticateToken, async (req, res) => {
+    const { text, sourceLang, targetLang } = req.body;
+
+    if (!text) return res.status(400).json({ error: 'text required' });
+
+    try {
+        const { processed, placeholders } = injectGlossaryTerms(text, sourceLang);
+
+        console.log(`[Translate] "${text}"`);
+        if (placeholders.length > 0) {
+            console.log(`[Translate] Injected ${placeholders.length} terms: "${processed}"`);
+        }
+
+        // Google uses zh-CN / zh-TW; our internal code uses 'zh'
+        const googleSource = sourceLang === 'zh' ? 'zh-CN' : sourceLang;
+        const googleTarget = targetLang === 'zh' ? 'zh-CN' : targetLang;
+
+        const response = await fetch(
+            `https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_TRANSLATE_API_KEY}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ q: processed, source: googleSource, target: googleTarget, format: 'text' })
+            }
+        );
+
+        if (!response.ok) {
+            const err = await response.text();
+            console.error('[Translate] Google API error:', response.status, err);
+            return res.status(502).json({ error: 'Translation service error' });
+        }
+
+        const data = await response.json();
+        const raw = data.data.translations[0].translatedText
+            // Google occasionally HTML-encodes plain-text responses
+            .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+
+        const translation = restoreGlossaryTerms(raw, placeholders);
+        console.log(`[Translate] → "${translation}"`);
+        res.json({ translation });
+
+    } catch (error) {
+        console.error('[Translate] Error:', error);
+        res.status(500).json({ error: 'Translation failed', details: error.message });
     }
 });
 
